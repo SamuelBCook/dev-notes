@@ -2,21 +2,58 @@ from pathlib import Path
 import duckdb
 from loguru import logger
 from nicegui import ui
+import json
+from db_utils import insert_note
 from uuid import uuid4
 
 
-def write_note(output_dir: Path, note_title: str, note_text: str):
-
+def write_note_handler(
+    title_input: ui.textarea,
+    text_input: ui.textarea,
+    output_dir: Path,
+    db_path: Path,
+    extension: str,
+):
     note_uuid = uuid4()
-    logger.debug(note_uuid)
-    logger.debug(type(note_uuid))
+    note_path = output_dir / f"{str(title_input.value)}-{str(note_uuid)}.{extension}"
 
-    output_path = output_dir / f"{str(note_title)}-{note_uuid}.txt" 
+    write_note(note_path=note_path, note_text=text_input.value)
 
-    logger.info(f"Writing file: {str(output_path)}")
-    with output_path.open("w", encoding="utf8"):
-        output_path.write_text(str(note_text))
+    insert_note(
+        note_uuid=note_uuid,
+        db_path=db_path,
+        note_title=title_input.value,
+        note_path=note_path,
+    )
+
+def write_note(note_path: Path, note_text: str):
+
+    logger.info(f"Writing file: {str(note_path)}")
+    with note_path.open("w", encoding="utf8"):
+        note_path.write_text(str(note_text))
 
     ui.notify("Note saved!")
 
-    return note_uuid
+
+def read_settings(settings_path: Path):
+
+    if not settings_path.exists():
+        logger.error(f"Settings file does not exist: {settings_path}")
+        raise FileExistsError
+
+    with settings_path.open("r", encoding="utf-8") as f:
+        settings = json.load(f)
+
+    return settings
+
+
+def overwrite_settings(settings_path: Path, settings: dict):
+
+    if not settings_path.exists():
+        logger.error(f"Settings file does not exist: {settings_path}")
+        raise FileExistsError
+
+    with settings_path.open("w", encoding="utf-8") as f:
+        json.dump(settings, f, indent=4)
+
+    logger.info('Updated settings')

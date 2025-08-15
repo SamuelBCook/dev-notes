@@ -3,7 +3,8 @@ from pathlib import Path
 from loguru import logger
 from typing import Optional
 import pandas as pd
-from uuid import uuid4
+from uuid import UUID
+
 
 def select_all_notes(db_path: Path):
 
@@ -15,13 +16,22 @@ def select_all_notes(db_path: Path):
             """
         ).df()
 
-        notes_df['datetime'] = pd.to_datetime(notes_df['datetime'])
-        notes_df.rename(columns={'title': 'Title', 'datetime': 'Created', 'note_path':'File path'}, inplace=True)
+        notes_df["datetime"] = pd.to_datetime(notes_df["datetime"])
+        notes_df.rename(
+            columns={"title": "Title", "datetime": "Created", "note_path": "File path"},
+            inplace=True,
+        )
 
         return notes_df
 
 
-def insert_note(db_path: Path, note_title: str, note_path: Path, note_uuid:uuid4, note_tags:Optional[list[str]] = None):
+def insert_note(
+    db_path: Path,
+    note_title: str,
+    note_path: Path,
+    note_uuid: UUID, 
+    note_tags: Optional[list[str]] = None,
+):
 
     with duckdb.connect(str(db_path)) as con:
 
@@ -42,7 +52,7 @@ def insert_note(db_path: Path, note_title: str, note_path: Path, note_uuid:uuid4
                     $note_path
                 );
                 """,
-                {'note_id': note_uuid, "note_title": note_title, "note_path": str(note_path)},
+                {"note_id": note_uuid, "note_title": note_title, "note_path": str(note_path)},
             )
 
             if note_tags:
@@ -78,7 +88,7 @@ def insert_note(db_path: Path, note_title: str, note_path: Path, note_uuid:uuid4
             raise
 
 
-def create_tables(db_path: Path):
+def init_db_config(db_path: Path):
 
     if db_path.exists():
         logger.debug(f"Database already exists at: {str(db_path)}")
@@ -132,5 +142,3 @@ def create_tables(db_path: Path):
                 logger.error(f"Error creating tables: {e}")
                 con.execute("ROLLBACK;")
                 raise
-
-
