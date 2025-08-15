@@ -1,4 +1,4 @@
-from nicegui import ui, Client, Tailwind
+from nicegui import ui, Tailwind
 from init_config import init_main
 from settings import settings_main
 from notes import notes_main
@@ -8,7 +8,12 @@ from home import home_main
 """
 Have README on first page, then meme of the day, then settings and notes page links
 Store settings in JSON
-Add tags and TODO
+TODO:
+ - Add tags
+ - Add todo
+ - Add markdown preview for notes
+ - remove filepath from table showing notes
+ - add abiltiy to view and edit settings json?
 """
 
 @ui.page("/home")
