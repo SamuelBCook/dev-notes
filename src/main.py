@@ -22,11 +22,11 @@ def main():
     _, output_dir, db_path, settings_path = init_main()
 
     with ui.tabs() as tabs:
-        ui.tab("Home", icon="home")
-        ui.tab("Notes", icon="create")
-        ui.tab("Settings", icon="settings")
-        ui.tab("Find", icon="explore")
-        ui.tab("Links", icon="launch")
+        ui.tab("Home", icon="home").classes('w-30')
+        ui.tab("Notes", icon="create").classes('w-30')
+        ui.tab("Settings", icon="settings").classes('w-30')
+        ui.tab("Find", icon="explore").classes('w-30')
+        ui.tab("Links", icon="launch").classes('w-30')
 
     # Links tab
     with ui.tab_panels(tabs, value="Links"):
@@ -43,7 +43,11 @@ def main():
            
     with ui.tab_panels(tabs, value="Notes"):
         with ui.tab_panel("Notes"):
-            notes_main(output_dir=output_dir, db_path=db_path)
+            with ui.column().style('flex: 1; width: 100vw; height: 100vh; gap: 10px'):
+                notes_main(output_dir=output_dir, db_path=db_path)
+                    # with ui.row().style('flex: 1; gap: 10px; width: 100%'):
+                    #     ui.textarea(label='Textarea 1', placeholder='Type something...').style('flex: 1; height: 100%;')
+                    #     ui.textarea(label='Textarea 2', placeholder='Type something...').style('flex: 1; height: 100%;')
 
     with ui.tab_panels(tabs, value="Home"):
         with ui.tab_panel("Home"):
