@@ -15,7 +15,7 @@ def write_note_handler(
     extension: str,
 ):
     note_uuid = uuid4()
-    note_path = output_dir / f"{str(title_input.value)}-{str(note_uuid)}.{extension}"
+    note_path = output_dir / f"{str(title_input.value)}-{str(note_uuid)}{extension}"
 
     write_note(note_path=note_path, note_text=text_input.value)
 

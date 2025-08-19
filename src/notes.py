@@ -4,23 +4,6 @@ from backend import write_note_handler
 from pathlib import Path
 
 
-def markdown_view():
-
-    with ui.row().style('width: 100vw; height: 100vh; gap: 10px'):
-        text_input = ui.textarea(label='Markdown Editor', placeholder='Type something...').style('flex: 1; height: 100%;')
-        markdown_preview = ui.markdown('### Lets write some Markdown! ').style('flex: 1; height: 100%; overflow: auto;')
-
-        text_input.on_value_change(lambda e: markdown_preview.set_content(text_input.value))
-
-    return text_input
-
-
-def text_view():
-    text_input = ui.textarea(label='Markdown Editor', placeholder='Type something...').style('flex: 1; height: 100%;')
-
-    return text_input
-
-
 
 def notes_main(output_dir:Path, db_path:Path):
     #ui.link("New notes page...", "/new-note")  # can do to external websites instead
@@ -50,8 +33,8 @@ def notes_main(output_dir:Path, db_path:Path):
 
     with ui.row().style('width: 100vw; height: 100vh; gap: 10px'):
         text_input = ui.textarea(label='Markdown Editor', placeholder='Type something...').style('flex: 1; height: 100%;')
-        markdown_preview = ui.markdown('### Lets write some Markdown! ').style('flex: 1; height: 100%; overflow: auto;')
-        markdown_preview.visible = False  # start hidden as long as default is .txt
+        markdown_preview = ui.markdown('### Lets write some Markdown! ').style('flex: 1; height: 100%; overflow: auto; white-space: pre-wrap; word-wrap: break-word;')
+        markdown_preview.visible = (file_toggle.value == ".md")
 
         text_input.on_value_change(lambda e: markdown_preview.set_content(text_input.value))
 

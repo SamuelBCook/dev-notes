@@ -21,48 +21,42 @@ def main():
 
     _, output_dir, db_path, settings_path = init_main()
 
+    HOME_NAME = "Home"
+    NOTES_NAME = "New Note"
+    FIND_NAME = "Find"
+    SETTINGS_NAME = "Settings"
+    LINKS_NAME = "Links"
+
     with ui.tabs() as tabs:
-        ui.tab("Home", icon="home").classes('w-30')
-        ui.tab("Notes", icon="create").classes('w-30')
-        ui.tab("Settings", icon="settings").classes('w-30')
-        ui.tab("Find", icon="explore").classes('w-30')
-        ui.tab("Links", icon="launch").classes('w-30')
+        ui.tab(HOME_NAME, icon="home").classes('w-30')
+        ui.tab(NOTES_NAME, icon="create").classes('w-30')
+        ui.tab(FIND_NAME, icon="explore").classes('w-30')
+        ui.tab(SETTINGS_NAME, icon="settings").classes('w-30')
+        ui.tab(LINKS_NAME, icon="launch").classes('w-30')
 
     # Links tab
-    with ui.tab_panels(tabs, value="Links"):
-        with ui.tab_panel("Links"):
+    with ui.tab_panels(tabs, value=LINKS_NAME):
+        with ui.tab_panel(LINKS_NAME):
             links_main(settings_path=settings_path)
 
-    with ui.tab_panels(tabs, value="Find"):
-        with ui.tab_panel("Find"):
+    with ui.tab_panels(tabs, value=FIND_NAME):
+        with ui.tab_panel(FIND_NAME):
             find_main(db_path=db_path)
 
-    with ui.tab_panels(tabs, value="Settings"):
-        with ui.tab_panel("Settings"):
+    with ui.tab_panels(tabs, value=SETTINGS_NAME):
+        with ui.tab_panel(SETTINGS_NAME):
             settings_main()
            
-    with ui.tab_panels(tabs, value="Notes"):
-        with ui.tab_panel("Notes"):
+    with ui.tab_panels(tabs, value=NOTES_NAME):
+        with ui.tab_panel(NOTES_NAME):
             with ui.column().style('flex: 1; width: 100vw; height: 100vh; gap: 10px'):
                 notes_main(output_dir=output_dir, db_path=db_path)
-                    # with ui.row().style('flex: 1; gap: 10px; width: 100%'):
-                    #     ui.textarea(label='Textarea 1', placeholder='Type something...').style('flex: 1; height: 100%;')
-                    #     ui.textarea(label='Textarea 2', placeholder='Type something...').style('flex: 1; height: 100%;')
 
-    with ui.tab_panels(tabs, value="Home"):
-        with ui.tab_panel("Home"):
+    with ui.tab_panels(tabs, value=HOME_NAME):
+        with ui.tab_panel(HOME_NAME):
             home_main()
 
     ui.run(native=True, reload=False)
-
-
-@ui.page(
-    "/new-note"
-)  # can add params like this: ui.page('/new-note/{id}') then have params in func def and use
-def new_note():
-    # Could add new note stuff here and link back
-    # ui.button("TO GITLAB!", on_click=lambda : ui.open('https://gitlab.com/dashboard/projects/member'))
-    pass
 
 
 if __name__ == "__main__":
