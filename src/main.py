@@ -1,10 +1,11 @@
-from nicegui import ui, Tailwind
+from nicegui import ui, Tailwind, app
 from init_config import init_main
 from settings import settings_main
 from notes import notes_main
 from links import links_main
 from find import find_main
 from home import home_main
+from pathlib import Path
 """
 Have README on first page, then meme of the day, then settings and notes page links
 Store settings in JSON
@@ -18,6 +19,16 @@ TODO:
 
 @ui.page("/home")
 def main():
+
+    app.native.start_args['icon'] = Path('static/gui_icon.ico').absolute()
+    #app.native.window_args['always_on_top'] = True
+    app.native.window_args['title'] = "DevNotes"
+    #app.native.start_args['width'] = 800
+    #app.native.start_args['height'] = 800
+    #app.native.start_args['shadow'] = True
+    #app.native.start_args['background_color'] = '#d2eeef'
+
+
 
     _, output_dir, db_path, settings_path = init_main()
 
