@@ -32,7 +32,7 @@ def notes_main(output_dir:Path, db_path:Path):
     )
 
     with ui.row().style('width: 100vw; height: 100vh; gap: 10px'):
-        text_input = ui.textarea(label='Markdown Editor', placeholder='Type something...').style('flex: 1; height: 100%;')
+        text_input = ui.textarea(label='New Note', placeholder='Type something...').style('flex: 1; height: 100%;')
         markdown_preview = ui.markdown('### Lets write some Markdown! ').style('flex: 1; height: 100%; overflow: auto; white-space: pre-wrap; word-wrap: break-word;')
         markdown_preview.visible = (file_toggle.value == ".md")
 
