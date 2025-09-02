@@ -116,7 +116,7 @@ def main():
     #app.native.start_args['height'] = 800
         #app.native.window_args['always_on_top'] = True
 
-    _, output_dir, db_path, settings_path = init_main()
+    root_dir, output_dir, db_path, settings_path = init_main()
 
     
     with ui.tabs() as tabs:
@@ -133,11 +133,11 @@ def main():
 
     with ui.tab_panels(tabs, value=FIND_NAME):
         with ui.tab_panel(FIND_NAME):
-            find_main(db_path=db_path)
+            find_main(db_path=db_path, root_dir=root_dir)
 
     with ui.tab_panels(tabs, value=SETTINGS_NAME):
         with ui.tab_panel(SETTINGS_NAME):
-            settings_main()
+            settings_main(root_dir=root_dir)
            
     with ui.tab_panels(tabs, value=NOTES_NAME):
         with ui.tab_panel(NOTES_NAME):

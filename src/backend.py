@@ -5,6 +5,9 @@ from nicegui import ui
 import json
 from db_utils import insert_note
 from uuid import uuid4
+import re
+from uuid import UUID
+from typing import Optional
 
 
 def write_note_handler(
@@ -13,9 +16,12 @@ def write_note_handler(
     output_dir: Path,
     db_path: Path,
     extension: str,
+    note_uuid: UUID
 ):
-    note_uuid = uuid4()
+        
     note_path = output_dir / f"{str(title_input.value)}-{str(note_uuid)}{extension}"
+
+    note_tags = check_for_tags(text=text_input.value)
 
     write_note(note_path=note_path, note_text=text_input.value)
 
@@ -24,6 +30,7 @@ def write_note_handler(
         db_path=db_path,
         note_title=title_input.value,
         note_path=note_path,
+        note_tags=note_tags
     )
 
 def write_note(note_path: Path, note_text: str):
@@ -57,3 +64,18 @@ def overwrite_settings(settings_path: Path, settings: dict):
         json.dump(settings, f, indent=4)
 
     logger.info('Updated settings')
+
+
+def check_for_tags(text:str):
+
+    if text is None:
+        return []
+
+    # Double \\ as \ is escaped in regex strings
+    matches = re.findall(r'\\@(\S+)', text)
+
+    if matches:
+        logger.debug(f'Tags detected!: {matches}')
+        return matches
+    
+    return []

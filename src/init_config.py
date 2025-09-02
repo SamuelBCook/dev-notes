@@ -4,7 +4,7 @@ from pathlib import Path
 from classes import DefaultSettings
 import json
 from pathlib import Path
-
+from platformdirs import user_data_dir
 
 def init_main() -> tuple[Path, Path, Path, Path]:
 
@@ -12,17 +12,31 @@ def init_main() -> tuple[Path, Path, Path, Path]:
 
     logger.info("Initialising Dev Notes App...")
 
-    root_path, output_dir, db_path = init_dirs()
+    root_dir = init_app_dir()
+
+    output_dir, db_path = init_other_dirs(root_dir)
 
     init_db_config(db_path=db_path)
 
-    settings_path = init_settings_config(root_path=root_path)
+    settings_path = init_settings_config(root_path=root_dir)
 
     # TODO: if fails rollback and delete all
 
     logger.info("Dev Notes App initialised successfully!")
 
-    return root_path, output_dir, db_path, settings_path
+    return root_dir, output_dir, db_path, settings_path
+
+
+def init_app_dir():
+
+    app_name = "DevNotes"
+    app_author = "SamuelCook"
+
+    root_dir = Path(user_data_dir(app_name, app_author))
+    logger.info(f"Root dir: {root_dir}")
+    root_dir.mkdir(parents=True, exist_ok=True)
+    return root_dir
+
 
 
 def init_settings_config(root_path: Path):
@@ -46,16 +60,13 @@ def init_settings_config(root_path: Path):
     return settings_path
 
 
-def init_dirs():
+def init_other_dirs(root_dir:Path):
 
-    ROOT_DIR = Path.cwd() / "DevNotes"
-    ROOT_DIR.mkdir(exist_ok=True)
-
-    OUTPUT_DIR = ROOT_DIR / "notes"
+    OUTPUT_DIR = root_dir / "notes"
     OUTPUT_DIR.mkdir(exist_ok=True, parents=True)
 
-    DB_DIR = ROOT_DIR / "db"
+    DB_DIR = root_dir / "db"
     DB_DIR.mkdir(exist_ok=True, parents=True)
     DB_PATH = DB_DIR / "dev_notes.db"
 
-    return ROOT_DIR, OUTPUT_DIR, DB_PATH
+    return OUTPUT_DIR, DB_PATH

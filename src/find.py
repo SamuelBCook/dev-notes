@@ -3,17 +3,20 @@ from db_utils import select_all_notes
 from nicegui import ui
 from loguru import logger
 
-def find_main(db_path:Path):
-    notes_table = create_notes_table(db_path=db_path)
+def find_main(db_path:Path, root_dir:Path):
+    notes_table = create_notes_table(db_path=db_path, root_dir=root_dir)
 
 
-def create_notes_table(db_path: Path):
+def create_notes_table(db_path: Path, root_dir:Path):
 
     notes_df = select_all_notes(db_path=db_path)
 
     hidden_df = notes_df.copy()  #  Preserve to find file paths
-    notes_df.drop(columns=['File path'], inplace=True)  # Looks ugly
+
+    notes_df['File path'] = notes_df['File path'].apply(lambda x: str(Path(x).parent).removeprefix(str(root_dir)))
     notes_df['Created'] = notes_df['Created'].dt.floor('s')  # Floor to the second precision
+
+    notes_df = notes_df[['Title', 'Created', 'File path']]
 
     table = ui.table.from_pandas(
         notes_df,
