@@ -6,6 +6,7 @@ from links import links_main
 from find import find_main
 from home import home_main
 from pathlib import Path
+from loguru import logger
 """
 Have README on first page, then meme of the day, then settings and notes page links
 Store settings in JSON
@@ -133,7 +134,8 @@ def main():
 
     with ui.tab_panels(tabs, value=FIND_NAME):
         with ui.tab_panel(FIND_NAME):
-            find_main(db_path=db_path, root_dir=root_dir)
+            #find_main(db_path=db_path, root_dir=root_dir)
+            refresh_find = find_main(db_path=db_path, root_dir=root_dir, output_dir=output_dir)
 
     with ui.tab_panels(tabs, value=SETTINGS_NAME):
         with ui.tab_panel(SETTINGS_NAME):
@@ -147,6 +149,19 @@ def main():
     with ui.tab_panels(tabs, value=HOME_NAME):
         with ui.tab_panel(HOME_NAME):
             home_main()
+
+
+    # Refresh tabs on click
+    # def refresh_find_tab():
+    #     print("Refreshing FIND tab...")
+    #     find_main(db_path=db_path, root_dir=root_dir)
+
+    def handle_tab_switch(e):
+        logger.debug(f'Switching tab: {e.args}')
+        if e.args == FIND_NAME:
+            refresh_find()
+
+    tabs.on('update:model-value', handle_tab_switch)
 
     ui.run(native=True, reload=False)
 

@@ -1,22 +1,39 @@
 from pathlib import Path
 from db_utils import select_all_notes
+from backend import update_find_table, write_note_handler
 from nicegui import ui
 from loguru import logger
+from uuid import UUID
 
-def find_main(db_path:Path, root_dir:Path):
-    notes_table = create_notes_table(db_path=db_path, root_dir=root_dir)
+def find_main(db_path:Path, root_dir:Path, output_dir:Path):
+    #notes_table = create_notes_table(db_path=db_path, root_dir=root_dir)
+
+    container = ui.column()  # container to hold the table + extras
+
+    def refresh():
+        container.clear()
+        with container:
+            create_notes_table(db_path=db_path, root_dir=root_dir, output_dir=output_dir)
+
+    # build initially
+    refresh()
+
+    return refresh  # return refresh function so caller can trigger reload
 
 
-def create_notes_table(db_path: Path, root_dir:Path):
+def create_notes_table(db_path: Path, root_dir:Path, output_dir:Path):
 
-    notes_df = select_all_notes(db_path=db_path)
+    # TODO create handler for getting table deets and get all notes and all tags then merge
 
-    hidden_df = notes_df.copy()  #  Preserve to find file paths
+    #notes_df = select_all_notes(db_path=db_path)
+    notes_df = update_find_table(db_path=db_path)
+
+    hidden_df = notes_df.copy()  #  Preserve to find file paths and titles
 
     notes_df['File path'] = notes_df['File path'].apply(lambda x: str(Path(x).parent).removeprefix(str(root_dir)))
     notes_df['Created'] = notes_df['Created'].dt.floor('s')  # Floor to the second precision
 
-    notes_df = notes_df[['Title', 'Created', 'File path']]
+    #notes_df = notes_df[['Title', 'Created', 'File path']]
 
     table = ui.table.from_pandas(
         notes_df,
@@ -40,9 +57,18 @@ def create_notes_table(db_path: Path, root_dir:Path):
     # Save button
     def save_file():
         nonlocal current_file
-        print(current_file)
         if current_file and current_file.exists():
-            current_file.write_text(file_viewer.value, encoding='utf-8') # TODO: check if w or a
+            logger.debug(f'Current file: {current_file.stem}')
+            #current_file.write_text(file_viewer.value, encoding='utf-8') # TODO: check if w or a
+
+            write_note_handler(
+                title_input=hidden_df.loc[hidden_df["note_id"] == UUID(current_file.stem), "Title"].iloc[0],
+                text_input=file_viewer,
+                output_dir=output_dir,
+                db_path=db_path,
+                extension=current_file.suffix,
+                note_uuid=UUID(current_file.stem)
+            )
             ui.notify(f'Saved - well done!', color='positive')
         else:
             ui.notify('Something aint right kid', color='negative')

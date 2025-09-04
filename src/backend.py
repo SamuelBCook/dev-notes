@@ -3,15 +3,43 @@ import duckdb
 from loguru import logger
 from nicegui import ui
 import json
-from db_utils import insert_note
+from db_utils import insert_note, select_all_notes, select_all_tags
 from uuid import uuid4
 import re
 from uuid import UUID
 from typing import Optional
+import pandas as pd
+
+
+def update_find_table(db_path:Path):
+
+    notes_df = select_all_notes(db_path=db_path)
+    tags_df = select_all_tags(db_path=db_path)
+
+    notes_df["datetime"] = pd.to_datetime(notes_df["datetime"])
+
+    tags_grouped = (
+    tags_df
+    .groupby('note_id')['tag']
+    .apply(lambda x: ', '.join(x))   # or maybe I want (list) hmm
+    .reset_index()
+    )
+
+    df_merged = notes_df.merge(tags_grouped, on='note_id', how='left')
+
+    # Remove nan value if no tags
+    df_merged['tag'] = df_merged['tag'].fillna("")
+
+    df_merged.rename(
+        columns={"title": "Title", "datetime": "Created", "note_path": "File path", "tag":"Tags"},
+        inplace=True,
+    )
+
+    return df_merged
 
 
 def write_note_handler(
-    title_input: ui.textarea,
+    title_input: str,
     text_input: ui.textarea,
     output_dir: Path,
     db_path: Path,
@@ -19,7 +47,7 @@ def write_note_handler(
     note_uuid: UUID
 ):
         
-    note_path = output_dir / f"{str(title_input.value)}-{str(note_uuid)}{extension}"
+    note_path = output_dir / f"{str(note_uuid)}{extension}"
 
     note_tags = check_for_tags(text=text_input.value)
 
@@ -28,7 +56,7 @@ def write_note_handler(
     insert_note(
         note_uuid=note_uuid,
         db_path=db_path,
-        note_title=title_input.value,
+        note_title=title_input,
         note_path=note_path,
         note_tags=note_tags
     )
@@ -79,3 +107,4 @@ def check_for_tags(text:str):
         return matches
     
     return []
+

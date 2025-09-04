@@ -10,24 +10,36 @@ from uuid import UUID
 from decorators import careful_con
 from duckdb import DuckDBPyConnection
 
+@careful_con
+def select_all_tags(con: DuckDBPyConnection):
+    
+    tags_df = con.execute("""
+                SELECT 
+                n.id AS note_id,
+                n.title,
+                t.id AS tag_id,
+                t.tag
+                FROM notes n
+                JOIN note_tags nt ON n.id = nt.note_id
+                JOIN tags t ON nt.tag_id = t.id
+                WHERE n.is_deleted = FALSE 
+                AND t.is_deleted = FALSE;
+                """).fetch_df()
+    
+    return tags_df
 
-def select_all_notes(db_path: Path):
+    
+@careful_con
+def select_all_notes(con: DuckDBPyConnection):
 
-    with duckdb.connect(str(db_path)) as con:
+    notes_df = con.execute(
+        """
+        SELECT id as note_id, title, note_path, datetime FROM notes WHERE is_deleted = FALSE;
+        """
+    ).df()
 
-        notes_df = con.execute(
-            """
-            SELECT title, note_path, datetime FROM notes WHERE is_deleted = FALSE;
-            """
-        ).df()
+    return notes_df
 
-        notes_df["datetime"] = pd.to_datetime(notes_df["datetime"])
-        notes_df.rename(
-            columns={"title": "Title", "datetime": "Created", "note_path": "File path"},
-            inplace=True,
-        )
-
-        return notes_df
 
 def insert_tags(
         con: DuckDBPyConnection,
@@ -134,58 +146,41 @@ def insert_note(
         insert_tags(con=con, note_tags=note_tags, note_uuid=note_uuid)
                 
 
+@careful_con
+def init_db_config(con: DuckDBPyConnection):
 
-def init_db_config(db_path: Path):
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS notes (
+        id UUID PRIMARY KEY,
+        title TEXT NOT NULL,
+        note_path TEXT NOT NULL,
+        datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        is_deleted BOOL DEFAULT FALSE
+        );
+        """
+    )
 
-    if db_path.exists():
-        logger.debug(f"Database already exists at: {str(db_path)}")
-        return
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tags (
+        id UUID PRIMARY KEY DEFAULT uuid(),
+        tag TEXT NOT NULL UNIQUE,
+        is_deleted BOOL DEFAULT FALSE
+        );
+        """
+    )
 
-    else:
+    con.execute(
+        """
+        CREATE TABLE IF NOT EXISTS note_tags (
+        note_id UUID REFERENCES notes(id),
+        tag_id UUID REFERENCES tags(id),
+        PRIMARY KEY (note_id, tag_id)
+        );
+        """
+    )
 
-        with duckdb.connect(str(db_path)) as con:
+    logger.debug("Database created successfully!")
 
-            try:
-
-                con.execute("BEGIN TRANSACTION;")
-
-                con.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS notes (
-                    id UUID PRIMARY KEY,
-                    title TEXT NOT NULL,
-                    note_path TEXT NOT NULL,
-                    datetime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    is_deleted BOOL DEFAULT FALSE
-                    );
-                    """
-                )
-
-                con.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS tags (
-                    id UUID PRIMARY KEY DEFAULT uuid(),
-                    tag TEXT NOT NULL UNIQUE,
-                    is_deleted BOOL DEFAULT FALSE
-                    );
-                    """
-                )
-
-                con.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS note_tags (
-                    note_id UUID REFERENCES notes(id),
-                    tag_id UUID REFERENCES tags(id),
-                    PRIMARY KEY (note_id, tag_id)
-                    );
-                    """
-                )
-
-                con.execute("COMMIT;")
-                logger.debug("Database created successfully!")
-
-            except Exception as e:
-
-                logger.error(f"Error creating tables: {e}")
-                con.execute("ROLLBACK;")
-                raise
+      

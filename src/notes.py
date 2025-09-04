@@ -21,7 +21,7 @@ def notes_main(output_dir:Path, db_path:Path):
             save_button = ui.button(
                 "Save",
                 on_click=lambda: write_note_handler(
-                    title_input=title_input,
+                    title_input=title_input.value,
                     text_input=text_input,
                     output_dir=output_dir,
                     db_path=db_path,
@@ -35,7 +35,7 @@ def notes_main(output_dir:Path, db_path:Path):
     title_input = ui.input(
         label="Title",
         value=default_title,
-        validation={"Input too long": lambda value: len(value) < 20},
+        validation={"Input too long": lambda value: len(value) < 100},
     )
 
     with ui.row().style('width: 100vw; height: 100vh; gap: 10px'):
